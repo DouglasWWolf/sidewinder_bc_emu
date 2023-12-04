@@ -142,7 +142,8 @@ localparam FSM_OUTPUT_MC2  = 4;
 localparam FSM_OUTPUT_FC   = 5;
 
 // The meta-command timestamp.  For now, it's just the frame counter.
-wire[63:0] metacommand_ts = frame_count;
+wire[63:0] metacommand_ts;
+byte_swap#(64) bs3(.I(frame_count), .O(metacommand_ts));
 
 // Padding for the metacommand
 localparam[56*8-1:0] mc_padding = 0;
@@ -152,10 +153,14 @@ wire[(METACOMMAND_WIDTH*8)-1:0] metacommand_be = {metacommand_ts, MC_FIXED, mc_p
 
 // This is the meta-command in little endian
 wire[(METACOMMAND_WIDTH*8)-1:0] metacommand_le;
-genvar i;
-for (i=0; i<METACOMMAND_WIDTH; i=i+1) begin
-    assign metacommand_le[i*8 +:8] = metacommand_be[(METACOMMAND_WIDTH-1-i)*8 +:8];
-end 
+
+// metacommand_le is metacommand_be with the bytes in reverse order
+byte_swap#(METACOMMAND_WIDTH*8) bs1(.I(metacommand_be), .O(metacommand_le));
+
+// Create a byte-swapped version of the data on the input stream
+wire[DATA_WBITS-1:0] axis_in_tdata_swapped;
+byte_swap#(DATA_WBITS) bs2(.I(AXIS_IN_TDATA), .O(axis_in_tdata_swapped));
+
 
 //-----------------------------------------------------------------------------
 // This block determines the output_mode by looking at the state of the
@@ -198,7 +203,7 @@ end
 always @* begin
     case (output_mode)
         OM_RESET:   M_AXI_WDATA = 0;
-        OM_FD   :   M_AXI_WDATA = AXIS_IN_TDATA;
+        OM_FD   :   M_AXI_WDATA = axis_in_tdata_swapped;
         OM_MC1  :   M_AXI_WDATA = metacommand_le[ 0*8 +: DATA_WBITS];
         OM_MC2  :   M_AXI_WDATA = metacommand_le[64*8 +: DATA_WBITS];
         OM_FC   :   M_AXI_WDATA = frame_count;
@@ -230,7 +235,6 @@ always @* begin
         OM_RESET:   M_AXI_WSTRB = 0;
         OM_FD   :   M_AXI_WSTRB = -1;
         OM_MC1  :   M_AXI_WSTRB = -1;
-        OM_MC2  :   M_AXI_WSTRB = -1;
         OM_FC   :   M_AXI_WSTRB = 8'hFF;
     endcase
 end
