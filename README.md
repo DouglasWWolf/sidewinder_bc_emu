@@ -1,4 +1,4 @@
-# RDMA/Ethernet Reference Design
+# Bright Cycle Emulator
 
 ![Design Schematic](/image/design.png)
 
