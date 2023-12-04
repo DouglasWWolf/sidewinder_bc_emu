@@ -1,3 +1,9 @@
+#
+# Usage: align_pcs.sh <0 | 1> [loopback]
+#
+# If PCS is not aligned, this script will perform PCS alignment on the specified QSFP port
+#
+
 # This Ethernet IP reset sequence and register map are from from page 128 of:
 # https://docs.xilinx.com/viewer/book-attachment/KjOBPi3JqmLEeXdcXhXzyg/bRkBpLztI2LO~ZutVtlDmw
 
@@ -17,7 +23,7 @@ else
     exit 1
 fi
 
-# Ethernet port configuration and status registers
+# Ethernet configuration and status registers
             REG_ETH_RESET=$((ETH_BASE + 0x0004))
         REG_ETH_CONFIG_TX=$((ETH_BASE + 0x000C))
         REG_ETH_CONFIG_RX=$((ETH_BASE + 0x0014))
@@ -53,18 +59,24 @@ read_reg()
 #==============================================================================
 # This enables RS-FEC and achieves PCS alignment.   If you pass it the
 # keyword "loopback", internal transciever loopback mode will be enabled.
+#
+# Passed:  $1 = 0 or 1
+#          $2 = "loopback" (or nothing)
 #==============================================================================
 enable_ethernet()
 {
   # Our result starts out assuming we'll fail
   align_pcs_result=1
 
-  # If we already have PCS lock, do nothing.  Issuing a reset to the Ethernet
-  # core while it already has PCS does something that causes both the down-
-  # stream and upstream FIFOs to misbehave in unpleasant ways.
+  # If we already have PCS lock, enable the transmitter and receiver and do
+  # nothing else.  Issuing a reset to the Ethernet core while it already has
+  # PCS lock does something that causes both the down-stream and upstream 
+  # FIFOs to misbehave in unpleasant ways.
   status=$(read_reg $REG_ETH_STAT_RX)
   if [ $status -eq 3 ]; then
-      align_pcs_result=1
+      pcireg $REG_ETH_CONFIG_TX 1
+      pcireg $REG_ETH_CONFIG_RX 1
+      align_pcs_result=0
       return
   fi
 
@@ -91,10 +103,10 @@ enable_ethernet()
   pcireg $REG_ETH_CONFIG_TX 2
 
   # Wait for PCS alignment
-  echo "Performing PCS alignment on QSFP${QSFP_PORT}"
+  echo "Performing PCS alignment on QSFP${1}"
   prior_status=0
   aligned=0
-  for n in {1..60}; 
+  for n in {1..150}; 
   do
 
     # Fetch the alignment status
@@ -135,9 +147,8 @@ enable_ethernet()
 #==============================================================================
 
 
-
 # Check to make sure the PCI bus sees our FPGA
-reg=$(read_reg $REG_INITIAL_VALUE)
+reg=$(read_reg $REG_ETH_STAT_RX)
 if [ $reg -eq $((0xFFFFFFFF)) ]; then
     echo "You forgot to issue a hot_reset"
     exit 1

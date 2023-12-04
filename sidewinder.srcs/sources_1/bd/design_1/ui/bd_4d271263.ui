@@ -26,7 +26,7 @@ levelinfo -pg 1 0 160 400 540
 pagesize -pg 1 -db -bbox -sgen -170 0 650 320
 ",
    "No Loops_ScaleFactor":"1.0",
-   "No Loops_TopLeft":"-338,-155",
+   "No Loops_TopLeft":"-486,-389",
    "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:10.0 TLS
 #  -string -flagsOSRD
 preplace port ETH0_TX_STREAM -pg 1 -lvl 0 -x -10 -y 60 -defaultsOSRD

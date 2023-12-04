@@ -1,5 +1,6 @@
-./align_pcs.sh 0
-./align_pcs.sh 1
+./align_pcs.sh 0 || exit 1
+./align_pcs.sh 1 || exit 1
+
 
           CTRL=0x1004
         STATUS=0x1004

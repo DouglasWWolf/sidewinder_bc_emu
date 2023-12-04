@@ -30,18 +30,18 @@ module axis_pingpong #
 
 
     //=========================   Output Stream #1   ===========================
-    output [STREAM_WBITS-1:0] AXIS_OUT1_TDATA,
-    output                    AXIS_OUT1_TLAST,
-    output                    AXIS_OUT1_TVALID,
-    input                     AXIS_OUT1_TREADY,
+    output [STREAM_WBITS-1:0] AXIS_OUT0_TDATA,
+    output                    AXIS_OUT0_TLAST,
+    output                    AXIS_OUT0_TVALID,
+    input                     AXIS_OUT0_TREADY,
     //==========================================================================
 
 
     //=========================   Output Stream #2   ===========================
-    output [STREAM_WBITS-1:0] AXIS_OUT2_TDATA,
-    output                    AXIS_OUT2_TLAST,
-    output                    AXIS_OUT2_TVALID,
-    input                     AXIS_OUT2_TREADY,
+    output [STREAM_WBITS-1:0] AXIS_OUT1_TDATA,
+    output                    AXIS_OUT1_TLAST,
+    output                    AXIS_OUT1_TVALID,
+    input                     AXIS_OUT1_TREADY,
     //==========================================================================
 
     input[31:0] PACKETS_PER_GROUP
@@ -51,22 +51,22 @@ module axis_pingpong #
 reg output_select;
 
 // The output TDATA and TLAST are driven directly from the input stream
-assign AXIS_OUT1_TDATA = (output_select == 0) ? AXIS_IN_TDATA : 0;
-assign AXIS_OUT2_TDATA = (output_select == 1) ? AXIS_IN_TDATA : 0;
-assign AXIS_OUT1_TLAST = (output_select == 0) ? AXIS_IN_TLAST : 0;
-assign AXIS_OUT2_TLAST = (output_select == 1) ? AXIS_IN_TLAST : 0;
+assign AXIS_OUT0_TDATA = (output_select == 0) ? AXIS_IN_TDATA : 0;
+assign AXIS_OUT1_TDATA = (output_select == 1) ? AXIS_IN_TDATA : 0;
+assign AXIS_OUT0_TLAST = (output_select == 0) ? AXIS_IN_TLAST : 0;
+assign AXIS_OUT1_TLAST = (output_select == 1) ? AXIS_IN_TLAST : 0;
 
 // The output TVALID is driven by the input TVALID, gated by "output_select"
-assign AXIS_OUT1_TVALID = AXIS_IN_TVALID & (output_select == 0);
-assign AXIS_OUT2_TVALID = AXIS_IN_TVALID & (output_select == 1);
+assign AXIS_OUT0_TVALID = AXIS_IN_TVALID & (output_select == 0);
+assign AXIS_OUT1_TVALID = AXIS_IN_TVALID & (output_select == 1);
 
 // The TREADY signal on the input stream is driven by one of the output streams
-assign AXIS_IN_TREADY = (output_select == 0) ? AXIS_OUT1_TREADY : AXIS_OUT2_TREADY;
+assign AXIS_IN_TREADY = (output_select == 0) ? AXIS_OUT0_TREADY : AXIS_OUT1_TREADY;
 
 // Create some convenient shortcuts to the output TVALID, TLAST, and TREADY
-wire axis_out_tvalid = (output_select == 0) ? AXIS_OUT1_TVALID : AXIS_OUT2_TVALID;
-wire axis_out_tlast  = (output_select == 0) ? AXIS_OUT1_TLAST  : AXIS_OUT2_TLAST;
-wire axis_out_tready = (output_select == 0) ? AXIS_OUT1_TREADY : AXIS_OUT2_TREADY;
+wire axis_out_tvalid = (output_select == 0) ? AXIS_OUT0_TVALID : AXIS_OUT1_TVALID;
+wire axis_out_tlast  = (output_select == 0) ? AXIS_OUT0_TLAST  : AXIS_OUT1_TLAST;
+wire axis_out_tready = (output_select == 0) ? AXIS_OUT0_TREADY : AXIS_OUT1_TREADY;
 
 //--------------------------------------------------------------------------
 // This state machine watches for the handshake on the last data-cycle of
