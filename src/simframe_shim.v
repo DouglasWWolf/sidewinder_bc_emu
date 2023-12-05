@@ -235,7 +235,7 @@ always @* begin
         OM_RESET:   M_AXI_WSTRB = 0;
         OM_FD   :   M_AXI_WSTRB = -1;
         OM_MC1  :   M_AXI_WSTRB = -1;
-        OM_FC   :   M_AXI_WSTRB = 8'hFF;
+        OM_FC   :   M_AXI_WSTRB = 4'hF; /* We output lower 4 bytes of the FC */
     endcase
 end
 //-----------------------------------------------------------------------------

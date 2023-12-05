@@ -63,7 +63,10 @@ module shim_ctl
     output reg[63:0] FC_ADDR,
 
     // The meta-command that gets output after every frame
-    output reg[511:0] METACOMMAND
+    output reg[511:0] METACOMMAND,
+
+    // The rate-limiter delay
+    output reg[31:0] BYTES_PER_USEC
     //==========================================================================    
 );  
 
@@ -72,39 +75,40 @@ module shim_ctl
     localparam MODULE_VERSION = 1;
 
     // The indicies of the AXI registers
-    localparam REG_MODULE_REV    =  0;
+    localparam REG_MODULE_REV     =  0;
 
-    localparam REG_FD_RING_ADDRH =  1;
-    localparam REG_FD_RING_ADDRL =  2;
-    localparam REG_FD_RING_SIZEH =  3;
-    localparam REG_FD_RING_SIZEL =  4;
+    localparam REG_FD_RING_ADDRH  =  1;
+    localparam REG_FD_RING_ADDRL  =  2;
+    localparam REG_FD_RING_SIZEH  =  3;
+    localparam REG_FD_RING_SIZEL  =  4;
 
-    localparam REG_MC_RING_ADDRH =  5;
-    localparam REG_MC_RING_ADDRL =  6;
-    localparam REG_MC_RING_SIZEH =  7;
-    localparam REG_MC_RING_SIZEL =  8;
+    localparam REG_MC_RING_ADDRH  =  5;
+    localparam REG_MC_RING_ADDRL  =  6;
+    localparam REG_MC_RING_SIZEH  =  7;
+    localparam REG_MC_RING_SIZEL  =  8;
 
-    localparam REG_FC_ADDRH      =  9;
-    localparam REG_FC_ADDRL      = 10;
+    localparam REG_FC_ADDRH       =  9;
+    localparam REG_FC_ADDRL       = 10;
 
-    localparam REG_PKT_PER_GROUP = 11;
+    localparam REG_PKT_PER_GROUP  = 11;
+    localparam REG_BYTES_PER_USEC = 12;
 
-    localparam REG_MCOMMAND_00   = 16;
-    localparam REG_MCOMMAND_01   = 17;
-    localparam REG_MCOMMAND_02   = 18;
-    localparam REG_MCOMMAND_03   = 19;
-    localparam REG_MCOMMAND_04   = 20;
-    localparam REG_MCOMMAND_05   = 21;
-    localparam REG_MCOMMAND_06   = 22;
-    localparam REG_MCOMMAND_07   = 23;
-    localparam REG_MCOMMAND_08   = 24;
-    localparam REG_MCOMMAND_09   = 25;
-    localparam REG_MCOMMAND_10   = 26;
-    localparam REG_MCOMMAND_11   = 27;
-    localparam REG_MCOMMAND_12   = 28;
-    localparam REG_MCOMMAND_13   = 29;
-    localparam REG_MCOMMAND_14   = 30;
-    localparam REG_MCOMMAND_15   = 31;
+    localparam REG_MCOMMAND_00    = 16;
+    localparam REG_MCOMMAND_01    = 17;
+    localparam REG_MCOMMAND_02    = 18;
+    localparam REG_MCOMMAND_03    = 19;
+    localparam REG_MCOMMAND_04    = 20;
+    localparam REG_MCOMMAND_05    = 21;
+    localparam REG_MCOMMAND_06    = 22;
+    localparam REG_MCOMMAND_07    = 23;
+    localparam REG_MCOMMAND_08    = 24;
+    localparam REG_MCOMMAND_09    = 25;
+    localparam REG_MCOMMAND_10    = 26;
+    localparam REG_MCOMMAND_11    = 27;
+    localparam REG_MCOMMAND_12    = 28;
+    localparam REG_MCOMMAND_13    = 29;
+    localparam REG_MCOMMAND_14    = 30;
+    localparam REG_MCOMMAND_15    = 31;
     //==========================================================================
 
 
@@ -150,6 +154,8 @@ module shim_ctl
     localparam DEFAULT_FC_ADDR           = 64'h0000_F123_AABB_CC00;
     localparam DEFAULT_METACOMMAND       = 64'h0042_DEAD_BEEF_4200;
     localparam DEFAULT_PACKETS_PER_GROUP = 4;
+    localparam DEFAULT_BYTES_PER_USEC    = 12288;
+
     //==========================================================================
     // This state machine handles AXI4-Lite write requests
     //
@@ -168,6 +174,7 @@ module shim_ctl
             FC_ADDR           <= DEFAULT_FC_ADDR;
             METACOMMAND       <= DEFAULT_METACOMMAND;
             PACKETS_PER_GROUP <= DEFAULT_PACKETS_PER_GROUP;
+            BYTES_PER_USEC    <= DEFAULT_BYTES_PER_USEC;
 
         // If we're not in reset, and a write-request has occured...        
         end else case (axi4_write_state)
@@ -201,7 +208,10 @@ module shim_ctl
                     REG_FC_ADDRL:       FC_ADDR[31:00] <= ashi_wdata;  
 
                     // Update the number of packets in a ping-ponger group
-                    REG_PKT_PER_GROUP:  PACKETS_PER_GROUP <= ashi_wdata;                  
+                    REG_PKT_PER_GROUP:  PACKETS_PER_GROUP <= ashi_wdata;     
+
+                    // Update the rate-limiter's maximum throughput
+                    REG_BYTES_PER_USEC: BYTES_PER_USEC <= ashi_wdata;             
 
                     // Allow the user to store values into the "METACOMMAND" field
                     REG_MCOMMAND_00:  METACOMMAND[ 0 * 32 +: 32] <= ashi_wdata;
@@ -265,6 +275,7 @@ module shim_ctl
                 REG_FC_ADDRH:       ashi_rdata <= FC_ADDR[63:32];
                 REG_FC_ADDRL:       ashi_rdata <= FC_ADDR[31:00];    
                 REG_PKT_PER_GROUP:  ashi_rdata <= PACKETS_PER_GROUP;
+                REG_BYTES_PER_USEC: ashi_rdata <= BYTES_PER_USEC;
                 REG_MCOMMAND_00:    ashi_rdata <= METACOMMAND[ 0 * 32 +: 32];
                 REG_MCOMMAND_01:    ashi_rdata <= METACOMMAND[ 1 * 32 +: 32];
                 REG_MCOMMAND_02:    ashi_rdata <= METACOMMAND[ 2 * 32 +: 32];
