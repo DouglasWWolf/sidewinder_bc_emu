@@ -1,4 +1,11 @@
 #==============================================================================
+#  Date      Vers  Who  Description
+# -----------------------------------------------------------------------------
+# 06-Dec-23  1.00  DWW  Initial Creation
+#==============================================================================
+BC_EMU_API_VERSION=1.00
+
+#==============================================================================
 # AXI register definitions
 #==============================================================================
           REG_CTRL=0x1004
@@ -398,7 +405,7 @@ start_fifo()
 #
 # Displays "1" if the selected Ethernet port has PCS-lock, else displays 0
 #==============================================================================
-get_eth_pcs_lock()
+get_pcs_lock()
 {
     local eth0_pcs_lock=0
     local eth1_pcs_lock=0
@@ -423,3 +430,92 @@ get_eth_pcs_lock()
     fi
 }
 #==============================================================================
+
+
+#==============================================================================
+# Get PCS-lock with the Ethernet-partner
+#
+# $1 = 0 or 1
+#
+# Returns 0 on success
+#==============================================================================
+align_pcs()
+{
+    local port=$1
+    local base_addr
+
+    # Validate the port number and determine the base address of the registers
+    if [ "$port" = "0" ]; then
+        base_addr=0x10000
+    elif [ "$port" = "1" ]; then
+        base_addr=0x20000
+    else
+        echo "Bad port number [$port] passed to align_pcs()" 2>&1
+        return 1
+    fi
+
+    # If we already have PCS lock on this port, just enable the 
+    # transmitter and receiver
+    if [ $(get_pcs_lock $port) -eq 1 ]; then
+        pcireg $((base_addr + OFFS_ETH_CONFIG_TX)) 1
+        pcireg $((base_addr + OFFS_ETH_CONFIG_RX)) 1        
+        return 0
+    fi
+
+    # Disable the Ethernet transmitter
+    pcireg $((base_addr + OFFS_ETH_CONFIG_TX)) 1
+
+    # Enable RS-FEC indication and correction
+    pcireg $((base_addr + OFFS_ETH_RSFEC_CONFIG_IC)) 3
+
+    # Enable RS-FEC on both TX and RX
+    pcireg $((base_addr + OFFS_ETH_RSFEC_CONFIG)) 3
+
+    # Reset the Ethernet core to make the RS-FEC settings take effect
+    pcireg $((base_addr + OFFS_ETH_RESET)) 0xC0000000
+    pcireg $((base_addr + OFFS_ETH_RESET)) 0x00000000
+
+    # Enable the Ethernet receiver
+    pcireg $((base_addr + OFFS_ETH_CONFIG_RX)) 1
+
+    # Enable the transmission of RFI (Remote Fault Indicator)
+    pcireg $((base_addr + OFFS_ETH_CONFIG_TX)) 2
+
+    # Wait for PCS lock negotiation with the peer
+    for n in {1..150}; do
+        test $(get_pcs_lock $port) -eq 1 && break;
+        sleep .1
+    done
+
+    # Enable the Ethernet transmitter
+    pcireg $((base_addr + OFFS_ETH_CONFIG_TX)) 1
+
+    # Tell the caller if we have PCS lock
+    test $(get_pcs_lock $port) -eq 1 && return 0
+
+    # If we get here, we do NOT have PCS lock
+    return 1
+}
+#==============================================================================
+
+
+#==============================================================================
+# This ensures PCS-lock on both QSFP ports
+#==============================================================================
+init_ethernet()
+{
+    align_pcs 0
+    if [ $? -ne 0 ]; then
+        echo "Alignment failed on QSFP port 0.  Stopping." 1>&2
+        exit 1
+    fi
+    
+    align_pcs 1
+    if [ $? -ne 0 ]; then
+        echo "Alignment failed on QSFP port 1.  Stopping." 1>&2
+        exit 1
+    fi
+}
+#==============================================================================
+
+

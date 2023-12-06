@@ -36,9 +36,8 @@ if [ $need_bitstream -eq 1 ]; then
     echo "Bitstream loaded"
 fi
 
-../utils/align_pcs.sh 0 || exit 1
-../utils/align_pcs.sh 1 || exit 1
-
+# Get PCS lock on both QSFP ports
+init_ethernet
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
