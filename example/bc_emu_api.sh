@@ -27,6 +27,15 @@ REG_PKTS_PER_FRAME=0x1018
 REG_PKTS_PER_GROUP=0x202C
 REG_BYTES_PER_USEC=0x2030
    REG_METACOMMAND=0x2040
+
+# Ethernet configuration and status register offsets
+          OFFS_ETH_RESET=0x0004
+      OFFS_ETH_CONFIG_TX=0x000C
+      OFFS_ETH_CONFIG_RX=0x0014
+       OFFS_ETH_LOOPBACK=0x0090
+        OFFS_ETH_STAT_RX=0x0204
+OFFS_ETH_RSFEC_CONFIG_IC=0x1000
+   OFFS_ETH_RSFEC_CONFIG=0x107C
 #==============================================================================
 
 
@@ -227,14 +236,41 @@ set_frame_counter_addr()
 
 
 #==============================================================================
-# This displays 1 if the system is idle, and 0 if it isn't
+# This displays the number of the active FIFO, or "0" if neither is active
 #==============================================================================
-is_idle()
+get_active_fifo()
 {
-    local flag=$(read_reg $REG_START)
-    test $flag -eq 0 && echo "1" || echo "0"    
+    read_reg $REG_START
 }
 #==============================================================================
+
+
+#==============================================================================
+# This waits for the specified FIFO to become active
+#
+# $1 should be 0, 1, or 2
+#==============================================================================
+wait_active_fifo()
+{
+    local which_fifo=$1
+
+    # Validate the input parameter    
+    if [ -z $which_fifo ]; then
+        echo "Missing parameter on wait_active_fifo()" 1>&2
+        return 
+    elif [ $which_fifo -lt 0 ] || [ $which_fifo -gt 2 ]; then
+        echo "Bad parameter [$which_fifo] on wait_active_fifo()" 1>&2
+        return 
+    fi
+
+    # Wait for the specified FIFO to become active
+    while [ $(read_reg $REG_START) -ne $which_fifo ]; do
+        sleep .1
+    done
+}
+#==============================================================================
+
+
 
 
 #==============================================================================
@@ -246,10 +282,144 @@ idle_system()
     pcireg $REG_START 0
 
     # Wait for the current bright-cycle to finish being sent
-    while [ $(is_idle) -ne 1 ]; do
-        sleep .1
-    done
+    wait_active_fifo 0
 }
 #==============================================================================
 
 
+
+#==============================================================================
+# This clears one or both frame-data input FIFOs
+#
+# $1 should be 1, 2, or "both"
+#==============================================================================
+clear_fifo()
+{
+    local which_fifo=$1
+    
+    # A missing parameter or the word "both" means "clear them both"
+    test "$which_fifo" == "both" && which_fifo=3
+    test "$which_fifo" == ""     && which_fifo=3
+
+ 
+    if [ $which_fifo -ge 1 ] && [ $which_fifo -le 3 ]; then
+        pcireg $REG_CTRL $which_fifo
+    else
+        echo "Bad parameter [$1] on clear_fifo()" 1>&2
+    fi
+}
+#==============================================================================
+
+
+#==============================================================================
+# This returns the number of entries in the specified FIFO
+#==============================================================================
+get_fifo_count()
+{
+    local which_fifo=$1
+    
+    if [ -z $which_fifo ]; then
+        echo "Missing parameter on get_fifo_count()" 1>&2
+        echo 0
+    elif [ $which_fifo -eq 1 ]; then
+        read_reg $REG_COUNT0
+    elif [ $which_fifo -eq 2 ]; then
+        read_reg $REG_COUNT1
+    else
+        echo "Bad parameter [$1] on get_fifo_count()" 1>&2
+        echo 0
+    fi
+}
+#==============================================================================
+
+
+#==============================================================================
+# This loads data info one of the FIFOS
+#==============================================================================
+load_fifo()
+{
+    local which_fifo=$1
+    local filename=$2
+
+    # Validate the fifo #
+    if [ -z $which_fifo ]; then
+        echo "Missing parameter on load_fifo()" 1>&2
+        return 
+    elif [ $which_fifo -lt 1 ] || [ $which_fifo -gt 2 ]; then
+        echo "Bad parameter [$which_fifo] on load_fifo()" 1>&2
+        return 
+    fi
+
+    # Make sure the caller gave us a filename
+    if [ -z $filename ]; then
+        echo "Missing filename on load_fifo()" 1>&2
+        return
+    fi
+
+    # Make sure the file actually exists
+    if [ ! -f $filename ]; then
+        echo "not found: $filename" 1>&2
+        return
+    fi
+
+    # And load the data
+    ./load_bc_emu $which_fifo $filename 2>&1
+}
+#==============================================================================
+
+
+#==============================================================================
+# This will start generating data-frames from the specified FIFO
+#==============================================================================
+start_fifo()
+{
+    local which_fifo=$1
+
+    # Validate the fifo #
+    if [ -z $which_fifo ]; then
+        echo "Missing parameter on start_fifo()" 1>&2
+        return 
+    elif [ $which_fifo -lt 1 ] || [ $which_fifo -gt 2 ]; then
+        echo "Bad parameter [$which_fifo] on start_fifo()" 1>&2
+        return 
+    fi
+
+    # And tell the FPGA to start generating frames from this FIFO
+    pcireg $REG_START $which_fifo
+}
+#==============================================================================
+
+
+
+#==============================================================================
+# Displays the PCS-lock status of an Ethernet port
+#
+# $1 = 0, 1 or blank (blank = both)
+#
+# Displays "1" if the selected Ethernet port has PCS-lock, else displays 0
+#==============================================================================
+get_eth_pcs_lock()
+{
+    local eth0_pcs_lock=0
+    local eth1_pcs_lock=0
+
+    # Fetch the status of Ethernet port 0
+    local eth0_status=$(read_reg $((0x10000 + $OFFS_ETH_STAT_RX)))
+    
+    # Fetch the status of Ethernet port 1
+    local eth1_status=$(read_reg $((0x20000 + $OFFS_ETH_STAT_RX)))
+
+    # Check the STAT_RX register to see if we have PCS lock
+    test $eth0_status -eq 3 && eth0_pcs_lock=1
+    test $eth1_status -eq 3 && eth1_pcs_lock=1
+
+    # Display the requested status
+    if [ "$1" == "0" ]; then
+        echo $eth0_pcs_lock
+    elif [ "$1" == "1" ]; then
+        echo $eth1_pcs_lock
+    else
+        echo $((eth0_pcs_lock & eth1_pcs_lock))
+    fi
+}
+#==============================================================================

@@ -36,6 +36,10 @@ if [ $need_bitstream -eq 1 ]; then
     echo "Bitstream loaded"
 fi
 
+../utils/align_pcs.sh 0 || exit 1
+../utils/align_pcs.sh 1 || exit 1
+
+
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # <><><><>  If you are using this script as a template, everything  <><><><>
@@ -44,7 +48,7 @@ fi
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
-# Here, we should halt the process just in case
+# Make sure the system is idle
 idle_system
 
 # Set the output data rate in bytes-per-microsecond. 
@@ -65,3 +69,33 @@ define_mc_ring 0x0000_0002_0000_0000 4096
 # Define the address where the frame counter is stored
 set_frame_counter_addr 0x0000_0003_0000_0000
 
+# Make sure both input FIFOs start out empty
+clear_fifo both
+
+# Load frame data into the first FIFO
+load_fifo 1 frame_data_1.csv
+
+# Start generating frames from the data we just loaded
+start_fifo 1
+echo "Generating bright cycle frames from FIFO #1"
+
+# While frames are generating from FIFO #1, load FIFO #2 with frame data
+load_fifo 2 frame_data_2.csv
+
+# Let FIFO #1 generate bright cycle frames for a few seconds
+sleep 5
+
+# Switch to generating frames from FIFO 2
+start_fifo 2
+
+# Just for fun, lets wait for FIFO 2 to become active
+echo "Waiting for FIFO #2 to start"
+wait_active_fifo 2
+echo "Generating bright cycle frames from FIFO #2"
+
+# Let FIFO #2 generate bright cycle frames for a few seconds
+sleep 5
+
+# That's the end of our demo!
+idle_system
+echo "All done!"

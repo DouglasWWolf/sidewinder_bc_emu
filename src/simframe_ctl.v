@@ -281,7 +281,7 @@ module simframe_ctl #
                         if (~active_fifo[1]) begin
                             input_value      <= ashi_wdata;
                             fifo_load_strobe <= 2;
-                            f0_count         <= f1_count + 1;
+                            f1_count         <= f1_count + 1;
                         end
 
 
