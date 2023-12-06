@@ -1,7 +1,7 @@
 export project=sidewinder
 export folder=.
 
-rm -rf software/obj_x86
+rm -rf software/load_bc_emu/build
 rm -rf ${project}.hw/webtalk/*
 rm -rf ${project}.hw/webtalk/\.x*
 
