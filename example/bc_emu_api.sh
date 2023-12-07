@@ -376,6 +376,36 @@ load_fifo()
 
 
 #==============================================================================
+# This stores an immediate value into one of the FIFOS
+#==============================================================================
+load_fifo_imm()
+{
+    local which_fifo=$1
+    local value=$2
+
+    # Make sure the caller gave us a value
+    if [ -z $value ]; then
+        echo "Missing value on load_fifo()" 1>&2
+        return
+    fi
+
+    # Validate the fifo #
+    if [ "$which_fifo" == "1" ]; then
+        pcireg $REG_LOAD_F0 $value
+    elif [ "$which_fifo" == "2" ]; then
+        pcireg $REG_LOAD_F1 $value
+    else
+        echo "Bad parameter [$which_fifo] on load_fifo_imm()" 1>&2
+    fi
+
+}
+#==============================================================================
+
+
+
+
+
+#==============================================================================
 # This will start generating data-frames from the specified FIFO
 #==============================================================================
 start_fifo()
@@ -405,7 +435,7 @@ start_fifo()
 #
 # Displays "1" if the selected Ethernet port has PCS-lock, else displays 0
 #==============================================================================
-get_pcs_lock()
+get_pcs_status()
 {
     local eth0_pcs_lock=0
     local eth1_pcs_lock=0
@@ -456,7 +486,7 @@ align_pcs()
 
     # If we already have PCS lock on this port, just enable the 
     # transmitter and receiver
-    if [ $(get_pcs_lock $port) -eq 1 ]; then
+    if [ $(get_pcs_status $port) -eq 1 ]; then
         pcireg $((base_addr + OFFS_ETH_CONFIG_TX)) 1
         pcireg $((base_addr + OFFS_ETH_CONFIG_RX)) 1        
         return 0
@@ -483,7 +513,7 @@ align_pcs()
 
     # Wait for PCS lock negotiation with the peer
     for n in {1..150}; do
-        test $(get_pcs_lock $port) -eq 1 && break;
+        test $(get_pcs_status $port) -eq 1 && break;
         sleep .1
     done
 
@@ -491,7 +521,7 @@ align_pcs()
     pcireg $((base_addr + OFFS_ETH_CONFIG_TX)) 1
 
     # Tell the caller if we have PCS lock
-    test $(get_pcs_lock $port) -eq 1 && return 0
+    test $(get_pcs_status $port) -eq 1 && return 0
 
     # If we get here, we do NOT have PCS lock
     return 1

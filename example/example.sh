@@ -1,12 +1,17 @@
 #
 # This is an example script that drives the bright-cycle emulator.   
-#
-# You can create your own scripts by using this one as a template.  The upper portion
-# of this script will probably be common between all scripts, and the lower portion
-# can be customized to your particular application
-#
 # This script and "bc_emu_api.sh" was written by Doug Wolf
 #
+
+# <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+# <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+# <><><><> You can create your own scripts by using this one as a   <><><><>
+# <><><><> template.  The upper portion of this script will largely <><><><>
+# <><><><> be common between all scripts, and the lower portion can <><><><>
+# <><><><> be customized to your particular application             <><><><>
+# <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+# <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
 
 # Load our API into our current shell instance
 source bc_emu_api.sh

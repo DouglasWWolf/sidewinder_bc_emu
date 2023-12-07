@@ -3064,6 +3064,9 @@
                 "direction": "I",
                 "left": "15",
                 "right": "0"
+              },
+              "new_job": {
+                "direction": "I"
               }
             },
             "components": {
@@ -3509,6 +3512,9 @@
                     "direction": "I",
                     "left": "511",
                     "right": "0"
+                  },
+                  "new_job": {
+                    "direction": "I"
                   }
                 },
                 "addressing": {
@@ -3962,6 +3968,9 @@
                     "direction": "I",
                     "left": "511",
                     "right": "0"
+                  },
+                  "new_job": {
+                    "direction": "I"
                   }
                 },
                 "addressing": {
@@ -4062,6 +4071,13 @@
                   "clk",
                   "simframe_shim_0/clk",
                   "simframe_shim_1/clk"
+                ]
+              },
+              "new_job_1": {
+                "ports": [
+                  "new_job",
+                  "simframe_shim_1/new_job",
+                  "simframe_shim_0/new_job"
                 ]
               },
               "resetn_1": {
@@ -5971,6 +5987,9 @@
                 "direction": "O",
                 "left": "15",
                 "right": "0"
+              },
+              "new_job": {
+                "direction": "O"
               }
             }
           }
@@ -6130,6 +6149,12 @@
               "simframe_ctl/PKTS_PER_FRAME",
               "simframe_gen/PKTS_PER_FRAME",
               "simframe_shim/PACKETS_PER_FRAME"
+            ]
+          },
+          "simframe_ctl_new_job": {
+            "ports": [
+              "simframe_ctl/new_job",
+              "simframe_shim/new_job"
             ]
           }
         }
