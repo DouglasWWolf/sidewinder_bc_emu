@@ -36,7 +36,7 @@ test $(is_bitstream_loaded) -eq 0 && need_bitstream=1
 # If we need to load the bitstream into the FPGA, make it so
 if [ $need_bitstream -eq 1 ]; then
     echo "Loading bitstream..."
-    load_bitstream sidewinder_bc_emu.bit
+    load_bitstream sidewinder_bc_emu.bit 10.11.12.2:3121
     test $? -eq 0 || exit 1
     echo "Bitstream loaded"
 fi
