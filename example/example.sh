@@ -73,6 +73,24 @@ define_mc_ring 0x0000_0002_0000_0000 4096
 # Define the address where the frame counter is stored
 set_frame_counter_addr 0x0000_0003_0000_0000
 
+# Set the 64-byte fixed portion of the metacommand
+set_metacommand  0 0x01020304
+set_metacommand  1 0x05060708
+set_metacommand  2 0x09101112
+set_metacommand  3 0x13141516
+set_metacommand  4 0x17181920
+set_metacommand  5 0x21222324
+set_metacommand  6 0x25262728
+set_metacommand  7 0x29303132
+set_metacommand  8 0x33343536
+set_metacommand  9 0x37383940
+set_metacommand 10 0x41424344
+set_metacommand 11 0x45464748
+set_metacommand 12 0x49505152
+set_metacommand 13 0x53545556
+set_metacommand 14 0x57585960
+set_metacommand 15 0x61626364
+
 # Make sure both input FIFOs start out empty
 clear_fifo both
 

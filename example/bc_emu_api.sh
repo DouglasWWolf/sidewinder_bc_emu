@@ -294,6 +294,37 @@ idle_system()
 #==============================================================================
 
 
+#==============================================================================
+# This stores 32-bit words to the 64-byte meta-command buffer
+#
+# $1 = Index (0 thru 15)
+# $2 = Value to store
+#==============================================================================
+set_metacommand()
+{
+    local index=$1
+    local value=$(strip_underscores $2)
+
+    if [ -z $index ] || [ -z $value ]; then
+        echo "Missing parameter on set_metacommand()" 2>&1
+        return
+    fi
+
+    if [ $index -lt 0 ] || [ $index -gt 15 ]; then
+        echo "Bad index [$index] on set_metacommand()" 2>&1
+        return
+    fi
+
+    # Compute the address of the register where we'll store this value
+    local register=$((REG_METACOMMAND + (15 - $index)*4))
+
+    # Store the specified value into the metacommand register
+    pcireg $register $value
+}
+#==============================================================================
+
+
+
 
 #==============================================================================
 # This clears one or both frame-data input FIFOs
@@ -370,7 +401,7 @@ load_fifo()
     fi
 
     # And load the data
-    ./load_bc_emu $which_fifo $filename 2>&1
+    ./load_bc_emu $which_fifo $filename 1>&2
 }
 #==============================================================================
 
@@ -385,7 +416,7 @@ load_fifo_imm()
 
     # Make sure the caller gave us a value
     if [ -z $value ]; then
-        echo "Missing value on load_fifo()" 1>&2
+        echo "Missing value on load_fifo_imm()" 1>&2
         return
     fi
 
@@ -400,6 +431,8 @@ load_fifo_imm()
 
 }
 #==============================================================================
+
+
 
 
 

@@ -1,9 +1,7 @@
-# This short script will make the pcireg utility execute 
+#
+# This short script will make the listed executables run  
 # as the root user
 #
-# Once this script has been run, be sure to put pcireg,
-# hot_reset,  and show_device somewhere convenient in the
-# executable search path.     
 
 setuid_root()
 {
