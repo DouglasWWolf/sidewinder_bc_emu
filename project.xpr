@@ -307,24 +307,6 @@
         <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_xdma_0_0/top_level_xdma_0_0.xci">
           <Proxy FileSetName="top_level_xdma_0_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_sdp_ram_if_0_0/top_level_sdp_ram_if_0_0.xci">
-          <Proxy FileSetName="top_level_sdp_ram_if_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_sdp_ram_if_0_1/top_level_sdp_ram_if_0_1.xci">
-          <Proxy FileSetName="top_level_sdp_ram_if_0_1"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_abm_manager_ctl_0_0/top_level_abm_manager_ctl_0_0.xci">
-          <Proxy FileSetName="top_level_abm_manager_ctl_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_data_mover_0_0/top_level_data_mover_0_0.xci">
-          <Proxy FileSetName="top_level_data_mover_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_smartconnect_0_0/top_level_smartconnect_0_0.xci">
-          <Proxy FileSetName="top_level_smartconnect_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_axi_revision_0_0/top_level_axi_revision_0_0.xci">
-          <Proxy FileSetName="top_level_axi_revision_0_0"/>
-        </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_rdmx_shim_0_0/top_level_rdmx_shim_0_0.xci">
           <Proxy FileSetName="top_level_rdmx_shim_0_0"/>
         </CompFileExtendedInfo>
@@ -426,6 +408,24 @@
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_abm_notifier_0_0/top_level_abm_notifier_0_0.xci">
           <Proxy FileSetName="top_level_abm_notifier_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_sdp_ram_if_0_0/top_level_sdp_ram_if_0_0.xci">
+          <Proxy FileSetName="top_level_sdp_ram_if_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_sdp_ram_if_0_1/top_level_sdp_ram_if_0_1.xci">
+          <Proxy FileSetName="top_level_sdp_ram_if_0_1"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_abm_manager_ctl_0_0/top_level_abm_manager_ctl_0_0.xci">
+          <Proxy FileSetName="top_level_abm_manager_ctl_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_data_mover_0_0/top_level_data_mover_0_0.xci">
+          <Proxy FileSetName="top_level_data_mover_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_smartconnect_0_0/top_level_smartconnect_0_0.xci">
+          <Proxy FileSetName="top_level_smartconnect_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="top_level.bd" FileRelPathName="ip/top_level_axi_revision_0_0/top_level_axi_revision_0_0.xci">
+          <Proxy FileSetName="top_level_axi_revision_0_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PGENDIR/sources_1/bd/top_level/hdl/top_level_wrapper.v">
