@@ -70,7 +70,7 @@ set_rate_limit 12288
 set_packet_size 4096
 
 # A frame is 4M bytes
-set_frame_size 16384
+set_frame_size 0x40_0000
 
 # Set the number of packets in a packet-burst on each QSFP
 set_ping_pong_group 1
@@ -105,14 +105,17 @@ set_metadata 15 0x61626364
 # Make sure both input FIFOs start out empty
 clear_fifo both
 
-
 load_fifo_imm 1 0x11223344
 load_fifo_imm 1 0x55667788
+
+# This is the number of passes we'll make through the FIFO
+set_nshot_mode 3
 
 # Start generating frames from the data we just loaded
 start_fifo 1
 
-sleep 60
+# Wait for frame-generation to come to an end
+wait_active_fifo 0
 
 # That's the end of our demo!
 idle_system

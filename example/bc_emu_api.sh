@@ -7,8 +7,10 @@
 #                        Added "set_continuous_mode"
 #                        Added "set_oneshot_mode"
 #                        Fixed "get_pcs_status"
+#
+# 11-Apr-24  1.3.0  DWW  Added "set_nshot_mode"
 #==============================================================================
-BC_EMU_API_VERSION=1.2.0
+BC_EMU_API_VERSION=1.3.0
 
 #==============================================================================
 # AXI register definitions
@@ -21,6 +23,7 @@ BC_EMU_API_VERSION=1.2.0
         REG_COUNT1=0x100C
          REG_START=0x1010
      REG_CONT_MODE=0x1014
+   REG_NSHOT_LIMIT=0x1018
          REG_VALUE=0x1040
 
 MC_BASE=0x2000
@@ -558,5 +561,28 @@ set_continuous_mode()
 set_oneshot_mode()
 {
     pcireg $REG_CONT_MODE 0
+    pcireg $REG_NSHOT_LIMIT 1
 }
 #==============================================================================
+
+
+#==============================================================================
+# When a FIFO becomes active, this will cause frames to be generated 
+# until all entries from the FIFO have been used N times, then frame 
+# generation stops
+#==============================================================================
+set_nshot_mode()
+{
+    local nshot_limit=1
+    
+    if [ -z $1 ]; then
+        nshot_limit=1
+    else
+        nshot_limit=$1
+    fi
+
+    pcireg $REG_CONT_MODE 0
+    pcireg $REG_NSHOT_LIMIT $nshot_limit
+}
+#==============================================================================
+
